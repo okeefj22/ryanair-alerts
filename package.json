@@ -1,16 +1,16 @@
 {
-  "name": "swa-dashboard",
+  "name": "ryanair-alerts",
   "version": "1.0.0",
-  "description": "Dashboard to monitor and receive alerts for changes in Southwest fare prices",
+  "description": "Dashboard to monitor and receive alerts for changes in Ryanair fare prices",
   "main": "index.js",
   "bin": {
     "swa": "index.js"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/ezekg/swa-dashboard"
+    "url": "https://github.com/okeejf22/ryanair-alerts"
   },
-  "author": "Zeke Gabrielse",
+  "author": "Jacob O'Keeffe",
   "license": "MIT",
   "dependencies": {
     "airports": "^1.0.0",
