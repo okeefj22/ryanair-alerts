@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 "use strict"
 
-const osmosis = require("osmosis")
 const chalk = require("chalk")
 const rainbow = require("chalk-rainbow")
 const twilio = require("twilio")
-const format = require("date-format")
-const pretty = require("pretty-ms")
 const airports = require("airports")
+const request = require("request")
+const JSONStream = require('JSONStream')
+const es = require('event-stream');
 
 // Time constants
 const TIME_MS = 1
@@ -99,47 +99,21 @@ const sendTextMessage = (message) => {
 }
 
 /**
- * Fetch latest Southwest prices
+ * Fetch latest Ryanair prices
  *
  * @return {Void}
  */
 const fetch = () => {
-  osmosis
-    .get("https://www.southwest.com")
-    .submit(".booking-form--form", {
-      twoWayTrip: true,
-      airTranRedirect: "",
-      returnAirport: "RoundTrip",
-      outboundTimeOfDay: "ANYTIME",
-      returnTimeOfDay: "ANYTIME",
-      seniorPassengerCount: 0,
-      fareType: "DOLLARS",
-      originAirport,
-      destinationAirport,
-      outboundDateString,
-      returnDateString,
-      adultPassengerCount
-    })
-    .find("#faresOutbound .product_price")
-    .then((priceMarkup) => {
-      const matches = priceMarkup.toString().match(/\$.*?(\d+)/)
-      const price = parseInt(matches[1])
-      fares.outbound.push(price)
-    })
-    .find("#faresReturn .product_price")
-    .then((priceMarkup) => {
-      const matches = priceMarkup.toString().match(/\$.*?(\d+)/)
-      const price = parseInt(matches[1])
-      fares.return.push(price)
-    })
-    .done(() => {
-      const lowestOutboundFare = Math.min(...fares.outbound)
-      const lowestReturnFare = Math.min(...fares.return)
-      var faresAreValid = true
+  let roundTrip = returnDateString ? true : false
+  let reqURL = 'https://desktopapps.ryanair.com/en-ie/availability?ADT=' + adultPassengerCount + '&CHD=0&DateIn=' + returnDateString + '&DateOut=' + outboundDateString + '&Destination=' + destinationAirport + '&FlexDaysIn=0&FlexDaysOut=0&INF=0&Origin=' + originAirport + '&RoundTrip=' + roundTrip + '&TEEN=0&exists=false'
+  request({url: reqURL})
+    .pipe(JSONStream.parse())
+    .pipe(es.mapSync((data) => {
 
-      // Clear previous fares
-      fares.outbound = []
-      fares.return = []
+      // TODO get lowest from list of fares
+      const lowestOutboundFare = data.trips[0].dates[0].flights[0].regularFare.fares[0].amount
+      const lowestReturnFare = data.trips[1].dates[0].flights[0].regularFare.fares[0].amount
+      var faresAreValid = true
 
       // Get difference from previous fares
       const outboundFareDiff = prevLowestOutboundFare - lowestOutboundFare
@@ -192,14 +166,18 @@ const fetch = () => {
           }
         }
 
-        console.log([
-          `Lowest fares for an outbound flight is currently \$${[lowestOutboundFare, outboundFareDiffString].filter(i => i).join(" ")}`,
-          `Lowest fares for a return flight is currently \$${[lowestReturnFare, returnFareDiffString].filter(i => i).join(" ")}`
-        ])
+        [
+          `Lowest fares for an outbound flight is currently €${[lowestOutboundFare, outboundFareDiffString].filter(i => i).join(" ")}`,
+          `Lowest fares for a return flight is currently €${[lowestReturnFare, returnFareDiffString].filter(i => i).join(" ")}`
+        ].forEach((price) => {
+          console.log(price)
+        })
+        console.log()
       }
 
       setTimeout(fetch, interval * TIME_MIN)
-    })
+    }
+  }))
 }
 
 fetch()

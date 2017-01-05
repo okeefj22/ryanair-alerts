@@ -4,7 +4,7 @@
   "description": "Dashboard to monitor and receive alerts for changes in Ryanair fare prices",
   "main": "index.js",
   "bin": {
-    "swa": "index.js"
+    "ryanair": "index.js"
   },
   "repository": {
     "type": "git",
@@ -13,14 +13,12 @@
   "author": "Jacob O'Keeffe",
   "license": "MIT",
   "dependencies": {
+    "JSONStream": "^1.3.0",
     "airports": "^1.0.0",
-    "blessed": "^0.1.81",
-    "blessed-contrib": "^3.5.5",
     "chalk": "^1.1.3",
     "chalk-rainbow": "^1.0.0",
-    "date-format": "0.0.2",
-    "osmosis": "^1.0.2",
-    "pretty-ms": "^2.1.0",
+    "event-stream": "^3.3.4",
+    "request": "^2.79.0",
     "twilio": "^2.9.2"
   }
 }
